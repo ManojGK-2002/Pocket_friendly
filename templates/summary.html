@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Spending Summary</h2>
+
+    <div class="summary-grid">
+        {% for category, total in category_totals.items() %}
+        <div class="card category-card">
+            <h3>{{ category|capitalize }}</h3>
+            <p class="amount">${{ "%.2f"|format(total) }}</p>
+        </div>
+        {% endfor %}
+
+        <div class="card total-card">
+            <h3>Total Spent</h3>
+            <p class="amount">${{ "%.2f"|format(total_spent) }}</p>
+        </div>
+    </div>
+
+    <a href="#" class="btn btn-primary btn-block">
+        <i class="fas fa-download"></i> Download Report
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+    <h2>Spending Analysis</h2>
+
+    <div class="chart-container">
+        <canvas id="expenseChart"></canvas>
+    </div>
+
+    <div class="filter-group">
+        <h3>Filter by Category:</h3>
+        <div class="filter-buttons">
+            <div class="button-row">
+                {% for category in categories %}
+                <a href="#" class="btn category-filter" data-category="{{ category }}">{{ category|capitalize }}</a>
+                {% if loop.index % 3 == 0 and not loop.last %}
+                </div><div class="button-row">
+                {% endif %}
+                {% endfor %}
+                <a href="#" class="btn category-filter active" data-category="all">All</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-group">
+        <h3>Filter by Time Period:</h3>
+        <div class="filter-buttons">
+            <div class="button-row">
+                <a href="#" class="btn time-filter" data-period="today">Today</a>
+                <a href="#" class="btn time-filter" data-period="week">This Week</a>
+                <a href="#" class="btn time-filter" data-period="month">This Month</a>
+            </div>
+            <div class="button-row">
+                <a href="#" class="btn time-filter" data-period="year">This Year</a>
+                <a href="#" class="btn time-filter active" data-period="all">All Time</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('expenseChart').getContext('2d');
+    let expenseChart;
+
+    // Function to update chart
+    async function updateChart(category = 'all', period = 'all') {
+        try {
+            const response = await fetch(`/api/expenses?category=${category}&period=${period}`);
+            const data = await response.json();
+
+            if (expenseChart) {
+                expenseChart.destroy();
+            }
+
+            expenseChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: [
+                            '#4CAF50', '#2196F3', '#FFC107',
+                            '#FF5722', '#9C27B0', '#607D8B'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: getChartTitle(category, period),
+                            font: { size: 16 }
+                        },
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Error updating chart:', error);
+        }
+    }
+
+    // Helper function for chart title
+    function getChartTitle(category, period) {
+        let title = category === 'all' ? 'All Expenses' : `${category.charAt(0).toUpperCase() + category.slice(1)} Expenses`;
+
+        if (period !== 'all') {
+            const periodText = {
+                'today': 'Today',
+                'week': 'This Week',
+                'month': 'This Month',
+                'year': 'This Year'
+            }[period];
+            title += ` (${periodText})`;
+        }
+
+        return title;
+    }
+
+    // Initialize chart with all data
+    updateChart();
+
+    // Category filter click handler
+    document.querySelectorAll('.category-filter').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Update active button
+            document.querySelectorAll('.category-filter').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            // Update chart
+            const category = this.dataset.category;
+            const period = document.querySelector('.time-filter.active').dataset.period;
+            updateChart(category, period);
+        });
+    });
+
+    // Time period filter click handler
+    document.querySelectorAll('.time-filter').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+
+            // Update active button
+            document.querySelectorAll('.time-filter').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            this.classList.add('active');
+
+            // Update chart
+            const period = this.dataset.period;
+            const category = document.querySelector('.category-filter.active').dataset.category;
+            updateChart(category, period);
+        });
+    });
+});
+</script>
+{% endblock %}

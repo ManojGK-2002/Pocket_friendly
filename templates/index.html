@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="welcome-container">
+    <h2>Welcome</h2>
+
+    <div class="app-image">
+ <img src="{{ url_for('static', filename='images/images.jpg') }}"
+             alt="Money Savings"
+             class="coins-image">    </div>
+
+    <a href="{{ url_for('add_expense') }}" class="btn btn-primary btn-large">
+        <i class="fas fa-plus-circle"></i> Add Expense
+    </a>
+</div>
+{% endblock %}
